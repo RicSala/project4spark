@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:insert="boilerplate :: head">
+</head>
+
+<body>
+<header th:insert="boilerplate :: header">
+</header>
+
+<section>
+    <div class="container">
+        <div class="entry-list single">
+            <article th:object="${entry}">
+                <h1 th:text="*{tittle}">The best day I’ve ever had</h1>
+                <time th:datetime="*{date}" th:text="*{date}">January 31, 2016 at 1:00</time>
+                <div class="entry">
+                    <p th:text="*{body}">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nunc ut rhoncus felis,
+                        vel tincidunt neque. Vestibulum ut metus eleifend, malesuada nisl at, scelerisque sapien.
+                        Vivamus pharetra massa libero, sed feugiat turpis efficitur at.</p>
+
+                    <!--Todo: bein able to add several paragraphs...-->
+                    <!--<p>Cras egestas ac ipsum in posuere. Fusce suscipit, libero id malesuada placerat, orci velit semper metus, quis pulvinar sem nunc vel augue. In ornare tempor metus, sit amet congue justo porta et. Etiam pretium, sapien non fermentum consequat, <a href="">dolor augue</a> gravida lacus, non accumsan lorem odio id risus. Vestibulum pharetra tempor molestie. Integer sollicitudin ante ipsum, a luctus nisi egestas eu. Cras accumsan cursus ante, non dapibus tempor.</p>-->
+                    <p><a class="link" th:href="|${entry.slug}/edit|">Edit Entry</a></p>
+                    <!--Todo: having a log-in url for each entry is quite disturbing...-->
+                </div>
+            </article>
+        </div>
+    </div>
+</section>
+
+<section class="entry-comments">
+    <div class="container">
+        <h2>Comments</h2>
+        <div th:each="comment:${entry.comments}" class="comment">
+            <strong th:text="${comment.username}">Carling Kirk</strong>
+            <time th:datetime="${comment.date}" th:text="${comment.date}">January 31, 2016 at 1:00</time>
+            <p th:text="${comment.body}">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nunc ut rhoncus felis,
+                vel tincidunt neque. Vestibulum ut metus eleifend, malesuada nisl at, scelerisque sapien. Vivamus
+                pharetra massa libero, sed feugiat turpis efficitur at.</p>
+        </div>
+
+        <div class="new-comment">
+            <!--Todo: how can I send the entry I am in??? -->
+            <form th:action="|${entry.slug}/new-comment|" method="post">
+                <label for="name"> Name</label>
+                <input type="text" name="name"><br>
+                <label for="comment">Comment</label>
+                <textarea rows="5" name="comment"></textarea>
+                <input type="submit" value="Post Comment" class="button">
+            </form>
+        </div>
+    </div>
+</section>
+
+<footer th:insert="boilerplate :: footer">
+</footer>
+
+</body>
+</html>

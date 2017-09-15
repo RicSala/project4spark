@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:insert="boilerplate :: head">
+</head>
+    <body>
+
+    <header th:insert="boilerplate :: header">
+    </header>
+
+
+        <section>
+            <div class="container">
+                <div class="edit-entry">
+                    <h2>Edit Entry</h2>
+                    <form th:action="|/entries/${entry.slug}/edit|" method="post">
+                        <!--Todo: Be carefull: if title can be changed, slugs would change!-->
+                        <label for="title"> Title</label>
+                        <input type="text" name="title"><br>
+
+                        <label for="entry">Entry</label>
+                        <textarea rows="5" name="entry"></textarea>
+
+                        <input type="submit" value="Save Entry" class="button">
+                        <a href="#" class="button button-secondary">Cancel</a>
+                    </form>
+                </div>
+            </div>
+        </section>
+
+        <footer th:insert="boilerplate :: footer">
+        </footer>
+
+    </body>
+</html>
