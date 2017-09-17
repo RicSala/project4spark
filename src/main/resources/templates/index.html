@@ -7,33 +7,21 @@
     <header th:insert="boilerplate :: header">
     </header>
 
+    <p id="flash-message" th:if="${flashm}" th:text="${flashm}"></p>
 
 
-
-        <section>
+    <section>
             <div class="container">
                 <div class="entry-list">
                     <article th:if="${iterStat.count <= 3}" th:each="entry,iterStat : ${entries}">
-                        <!--Todo: Add the number of entries to show in a properties file?-->
-                        <h2><a th:href="|entries/${entry.slug}|" th:text="${entry.tittle}">The best day I’ve ever had</a></h2>
-                        <time datetime="2016-01-31 1:00" th:datetime="${entry.date}" th:text="${entry.date}"> January 31, 2016 at 1:00</time>
-                        <!--Todo: dates could be prettier...xD-->
+                        <h2><a th:href="|entries/${entry.slug}|" th:text="${entry.title}">The best day I’ve ever had</a></h2>
+                        <time datetime="2016-01-31 1:00" th:datetime="${#dates.format(entry.date, 'dd/MMM/yyyy HH:mm')}" th:text="${#dates.format(entry.date, 'dd/MMM/yyyy HH:mm')}"> January 31, 2016 at 1:00</time>
+                    <ul class="tags" th:if="${entry.tags}"><li th:each="tag : ${entry.tags}" th:text="${tag}">uno</li></ul>
                     </article>
-                    <!--<article>-->
-                        <!--<h2><a href="detail_2.html">The absolute worst day I’ve ever had</a></h2>-->
-                        <!--<time datetime="2016-01-31 1:00">January 31, 2016 at 1:00</a></time>-->
-                    <!--</article>-->
-                    <!--<article>-->
-                        <!--<h2><a href="detail_3.html">That time at the mall</a></h2>-->
-                        <!--<time datetime="2016-01-31 1:00">January 31, 2016 at 1:00</a></time>-->
-                    <!--</article>-->
-                    <!--<article>-->
-                        <!--<h2><a href="detail_4.html">Dude, where’s my car?</a></h2>-->
-                        <!--<time datetime="2016-01-31 1:00">January 31, 2016 at 1:00</a></time>-->
-                    <!--</article>-->
                 </div>
             </div>
         </section>
+
         <footer th:insert="boilerplate :: footer">
         </footer>
     </body>

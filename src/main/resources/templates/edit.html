@@ -3,33 +3,49 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head th:insert="boilerplate :: head">
 </head>
-    <body>
+<body>
 
-    <header th:insert="boilerplate :: header">
-    </header>
+<header th:insert="boilerplate :: header">
+</header>
 
 
-        <section>
-            <div class="container">
-                <div class="edit-entry">
-                    <h2>Edit Entry</h2>
-                    <form th:action="|/entries/${entry.slug}/edit|" method="post">
-                        <!--Todo: Be carefull: if title can be changed, slugs would change!-->
-                        <label for="title"> Title</label>
-                        <input type="text" name="title"><br>
+<section>
+    <div class="container">
+        <div class="edit-entry">
+            <h2>Edit Entry</h2>
+            <form th:action="|/entries/${entry.slug}/edit|" method="post">
+                <label for="title"> Title</label>
+                <input type="text" name="title" th:value="${entry.title}"><br>
+                <label for="tags"> Tags</label>
+                <ul class="tags">
+                    <li th:if="${entry.tags}" th:each="tag,iterStat : ${entry.tags}">
+                        <input
+                                type="checkbox"
+                                name="tags"
+                                th:value="|tag-${iterStat.count}|"
+                                th:checked="true"
+                                th:text="${tag}">
 
-                        <label for="entry">Entry</label>
-                        <textarea rows="5" name="entry"></textarea>
+                    </li>
 
-                        <input type="submit" value="Save Entry" class="button">
-                        <a href="#" class="button button-secondary">Cancel</a>
-                    </form>
-                </div>
-            </div>
-        </section>
+                </ul>
+                <label for="newTags"> Add tags</label>
+                <input type="text" name="newTags" placeholder="Enter new tags separated by comma :)"><br>
 
-        <footer th:insert="boilerplate :: footer">
-        </footer>
+                <label for="entry">Entry</label>
+                <textarea rows="5" name="entry" th:text="${entry.body}"></textarea>
 
-    </body>
+                <input type="submit" value="Save Entry" class="button">
+                <a th:href="|/entries/${entry.slug}|" class="button button-secondary">Cancel</a>
+                <a th:href="|/entries/${entry.slug}/delete|" class="button button-secondary">Delete</a>
+
+            </form>
+        </div>
+    </div>
+</section>
+
+<footer th:insert="boilerplate :: footer">
+</footer>
+
+</body>
 </html>

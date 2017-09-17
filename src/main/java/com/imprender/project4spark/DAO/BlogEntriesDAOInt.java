@@ -13,4 +13,6 @@ public interface BlogEntriesDAOInt {
 	boolean remove(Entry entry);
 
 	Entry findBySlug(String slug);
+
+	void sort();
 }

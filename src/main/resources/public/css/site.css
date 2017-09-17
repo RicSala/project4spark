@@ -123,9 +123,42 @@ a.link {
 
 
 
+
 /* ==========================================================================
    Page Styles
    ========================================================================== */
+
+#flash-message{
+	background-color: #2c89ba;
+	border-radius: 5px;
+	color: #fff;
+	display: block;
+	font-size: 14px;
+	padding: 10px 20px;
+    margin: 0;
+    text-align: center;
+}
+
+ul.tags {
+    margin: 1em auto 2em;
+    text-align: center;
+    padding: 0;
+    margin-bottom: 2em;
+}
+
+.tags li{
+    list-style: none;
+    display: inline-block;
+    margin: 0 1em 0 0;
+    background-color: lightslategray;
+    color: white;
+    padding: 0.5em 1em 0.5em 1em;
+    border-radius: 20%;
+}
+
+.tags li:hover {
+    background-color: #444444;
+}
 
 .entry-list,
 .edit-entry,
@@ -171,6 +204,7 @@ a.link {
 .entry p {
 	font-size: 18px;
 	margin-bottom: 40px;
+    white-space: pre-wrap;
 }
 .entry-comments {
 	background: #f1f1f1;
@@ -236,6 +270,7 @@ form textarea {
 	margin-bottom: 30px;
 	border-radius: 4px;
 	width: calc(100% - 32px);
+    white-space: pre-wrap;
 }
 .new-comment form input[type=text],
 .new-comment form textarea {

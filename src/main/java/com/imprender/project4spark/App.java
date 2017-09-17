@@ -5,14 +5,12 @@ import com.imprender.project4spark.model.Blog;
 import com.imprender.project4spark.model.Comment;
 import com.imprender.project4spark.model.Entry;
 import com.imprender.project4spark.model.NotFoundException;
+import com.imprender.project4spark.service.EntryUtils;
 import spark.ModelAndView;
 import spark.Request;
 import spark.template.thymeleaf.ThymeleafTemplateEngine;
 
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 import static spark.Spark.*;
 
@@ -23,26 +21,40 @@ public class App {
 		staticFileLocation("/public");
 		Blog blog = new Blog();
 
+		//FILTERs//
+
+		//Check if there is a cookie "password" and in that case, put it in a session cookie
 		before((request, response) -> {
 			if (request.cookie("password") != null) {
-				request.attribute("password", request.cookie("password"));
+				request.session().attribute("password", request.cookie("password"));
 			}
 		});
 
-
+		//If the user is trying to edit an entry, check if has password (and ask for it if it is not the case)
 		before("/entries/:slug/edit", (request, response) -> {
-			String password = request.attribute("password");
+			String password = request.session().attribute("password");
 			if (password == null || !password.equals(blog.getPassword())) {
-				String slug = request.params("slug");
-				response.redirect("/entries/" + slug + "/log-in");
+				request.session().attribute("destinyUrl", "/entries/" + request.params("slug") + "/edit");
+				response.redirect("/log-in");
 				halt();
-//				Todo: Ask what halt does
-//				Todo: It asks again for the password...seems that request.attribute is not working!
 			}
 		});
 
+		//If the user is trying to create a new entry, check password
+		before("/new", (request, response) -> {
+			String password = request.session().attribute("password");
+			if (password == null || !password.equals(blog.getPassword())) {
+				response.redirect("/log-in");
+				halt();
+			}
+		});
+
+
+
+		//HOMEPAGE
 		get("/", (request, response) -> {
 			Map<String, Object> model = new HashMap<>();
+			model.put("flashm", captureFlashMessage(request));
 			model.put("entries", blog.getEntries());
 			return new ModelAndView(model, "index");
 		}, new ThymeleafTemplateEngine());
@@ -53,32 +65,13 @@ public class App {
 		});
 
 
-		get("/new.html", (request, response) -> {
-			Map<String, Object> model = new HashMap<>();
-			model.put("nothing", "nothing");
-			return new ModelAndView(model, "new");
-		}, new ThymeleafTemplateEngine());
 
+		//VIEW ENTRY AND ADD COMMENT
 		get("entries/:slug", (request, response) -> {
 			Map<String, Object> model = new HashMap<>();
+			String message = captureFlashMessage(request);
+			model.put("flashm", message);
 			model.put("entry", blog.findBySlug(request.params("slug")));
-			return new ModelAndView(model, "detail");
-		}, new ThymeleafTemplateEngine());
-
-		get("/entries/:slug/edit", (request, response) -> {
-			Map<String, Object> model = new HashMap<>();
-			model.put("entry", blog.findBySlug(request.params("slug")));
-			return new ModelAndView(model, "edit");
-		}, new ThymeleafTemplateEngine());
-
-		post("/entries/:slug/edit", (request, response) -> {
-			String oldSlug = request.params("slug");
-			String title = request.queryParams("title");
-			String text = request.queryParams("entry");
-			Entry entry = new Entry(title, Calendar.getInstance().getTime(), text, new ArrayList<>());
-			entry = blog.findBySlug(oldSlug).update(entry);
-			Map<String, Object> model = new HashMap<>();
-			model.put("entry", entry);
 			return new ModelAndView(model, "detail");
 		}, new ThymeleafTemplateEngine());
 
@@ -90,52 +83,117 @@ public class App {
 			Entry entry = blog.findBySlug(request.params("slug"));
 			boolean added = blog.addCommentToEntry(entry, comment);
 
-//			if (added) {
-//				setFlashMessage(request, "Your comment was published! :)");
-//			}
-//
+			if (added) {
+				setFlashMessage(request, "Your comment was published! :)");
+			}
+
 			response.redirect("/entries/" + request.params("slug"));
 			return null;
 		});
 
-		get("/entries/:slug/log-in", (request, response) -> {
-//			Todo: como evito crear tantas urls iguales? esto para SEO es malo!
-			String slug = request.params("slug");
-			Map<String, Object> model = new HashMap<>();
-			model.put("entry", blog.findBySlug(slug));
-			return new ModelAndView(model, "password");
+
+
+		//NEW ENTRY
+		get("/new", (request, response) -> {
+			Map<String, Object> model = new HashMap<>(); //Todo: how can I avoid creating a map?
+			return new ModelAndView(model, "new");
 		}, new ThymeleafTemplateEngine());
 
-		post("/entries/:slug/log-in", (request, response) -> {
-			String slug = request.params("slug");
-//			Todo: como evito crear tantas urls iguales? esto para SEO es malo!
-			response.cookie("password", request.queryParams("password"));
-			Map<String, Object> model = new HashMap<>();
-			model.put("entry", blog.findBySlug(slug));
-			response.redirect("/entries/" + request.params("slug") + "/edit");
+		post("/new", (request, response) -> {
+			String title = request.queryParams("title");
+			String text = request.queryParams("entry");
+			String tagspre = request.queryParams("tags");
+			List<String> tags = Arrays.asList(tagspre.split(","));
+			Entry entry = new Entry(title, Calendar.getInstance().getTime(), text, tags);
+			blog.add(entry);
+			setFlashMessage(request, "Your entry was published! :)");
+			response.redirect("/entries/" + entry.getSlug());
 			return null;
 		});
 
 
 
+		//DELETE
+		get("/entries/:slug/delete", (request, response) -> {
+			Entry entry = blog.findBySlug(request.params("slug"));
+			blog.remove(entry);
+			setFlashMessage(request, "Entry deleted!");
+			response.redirect("/");
+			return null;
+		});
 
+
+
+		//EDIT ENTRY
+		get("/entries/:slug/edit", (request, response) -> {
+			Map<String, Object> model = new HashMap<>();
+			model.put("entry", blog.findBySlug(request.params("slug")));
+			return new ModelAndView(model, "edit");
+		}, new ThymeleafTemplateEngine());
+
+		post("/entries/:slug/edit", (request, response) -> {
+			String oldSlug = request.params("slug");
+			String title = request.queryParams("title");
+			String text = request.queryParams("entry");
+			List<String> tags = EntryUtils.getTAgs(request.queryParams("newTags"));
+			Entry entry = new Entry(title, Calendar.getInstance().getTime(), text, tags);
+			blog.findBySlug(oldSlug).update(entry);
+			setFlashMessage(request, "Your entry was edited!");
+			response.redirect("/entries/" + entry.getSlug());
+			return null;
+		});
+
+
+
+		//LOG-IN (PASSWORD FILTER)
+		get("/log-in", (request, response) -> {
+			Map<String, String> model = new HashMap<>();
+			String destiny = request.session().attribute("destinyUrl");
+			model.put("destinyUrl", destiny);
+			return new ModelAndView(model, "password");
+		}, new ThymeleafTemplateEngine());
+
+		post("/log-in", (request, response) -> {
+			response.cookie("password", request.queryParams("password"));
+			String destiny = request.session().attribute("destinyUrl");
+			response.redirect(destiny);
+			return null;
+		});
+
+
+		//EXCEPTIONs
 		exception(NotFoundException.class, (exception, request, response) -> {
 			response.status(404);
 
 			ThymeleafTemplateEngine engine = new ThymeleafTemplateEngine();
 			Map<String, String> model = new HashMap<>();
-			model.put("nothing", "nothing");
-//			Todo: why can't I pass null like in hanblebars?
 			String html = engine.render(new ModelAndView(model, "not-found"));
 			response.body(html);
-			//If you want more specific messages, we need more specific exceptions!
-			//Todo: Aren't cookies visible for all the urls? why params better than cookies? If the password is now in the param, why do I lost it if I clean the cookie??
-
 		});
 
 	}
 
+
+	//FLASH MESSAGE
+	private static String getFlashMessageKey(Request request) {
+		if (request.session(false) == null) {
+			return null;
+		}
+		if (!request.session().attributes().contains("flash-message")) {
+			return null;
+		}
+		return (String) request.session().attribute("flash-message");
+	}
+
+	private static String captureFlashMessage(Request request) {
+		String message = getFlashMessageKey(request);
+		if (message != null) {
+			request.session().removeAttribute("flash-message");
+		}
+		return message;
+	}
+
 	private static void setFlashMessage(Request request, String message) {
-		request.session().attribute("flash_message", message);
+		request.session().attribute("flash-message", message);
 	}
 }

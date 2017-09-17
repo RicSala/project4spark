@@ -7,21 +7,23 @@
 <header th:insert="boilerplate :: header">
 </header>
 
+
 <section>
+    <p id="flash-message" th:if="${flashm}" th:text="${flashm}"></p>
+
     <div class="container">
         <div class="entry-list single">
             <article th:object="${entry}">
-                <h1 th:text="*{tittle}">The best day I’ve ever had</h1>
+                <h1 th:text="*{title}">The best day I’ve ever had</h1>
                 <time th:datetime="*{date}" th:text="*{date}">January 31, 2016 at 1:00</time>
                 <div class="entry">
                     <p th:text="*{body}">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nunc ut rhoncus felis,
                         vel tincidunt neque. Vestibulum ut metus eleifend, malesuada nisl at, scelerisque sapien.
                         Vivamus pharetra massa libero, sed feugiat turpis efficitur at.</p>
 
-                    <!--Todo: bein able to add several paragraphs...-->
                     <!--<p>Cras egestas ac ipsum in posuere. Fusce suscipit, libero id malesuada placerat, orci velit semper metus, quis pulvinar sem nunc vel augue. In ornare tempor metus, sit amet congue justo porta et. Etiam pretium, sapien non fermentum consequat, <a href="">dolor augue</a> gravida lacus, non accumsan lorem odio id risus. Vestibulum pharetra tempor molestie. Integer sollicitudin ante ipsum, a luctus nisi egestas eu. Cras accumsan cursus ante, non dapibus tempor.</p>-->
+                    <ul class="tags" th:if="*{tags}"><li th:each="tag : *{tags}" th:text="${tag}">uno</li></ul>
                     <p><a class="link" th:href="|${entry.slug}/edit|">Edit Entry</a></p>
-                    <!--Todo: having a log-in url for each entry is quite disturbing...-->
                 </div>
             </article>
         </div>
@@ -40,7 +42,6 @@
         </div>
 
         <div class="new-comment">
-            <!--Todo: how can I send the entry I am in??? -->
             <form th:action="|${entry.slug}/new-comment|" method="post">
                 <label for="name"> Name</label>
                 <input type="text" name="name"><br>
